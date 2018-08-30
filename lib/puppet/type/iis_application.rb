@@ -18,24 +18,6 @@ Puppet::Type.newtype(:iis_application) do
 
   ensurable
 
-  def self.title_patterns
-    [
-      [
-        /^([^\\]+)\\([^\\]+)$/,
-        [
-          [:sitename],
-          [:applicationname],
-        ]
-      ],
-      [
-        /^([^\\]+)$/,
-        [
-          [:applicationname],
-        ]
-      ]
-    ]
-  end
-
   newparam(:applicationname, :namevar => true) do
     desc "The name of the application. The virtual path of the application is
           '/<applicationname>'."
@@ -46,7 +28,7 @@ Puppet::Type.newtype(:iis_application) do
     end
   end
 
-  newproperty(:sitename, :namevar => true, :parent => PuppetX::PuppetLabs::IIS::Property::Name) do
+  newparam(:sitename, :parent => PuppetX::PuppetLabs::IIS::Property::Name) do
     desc 'The name of the site for the application.'
   end
 
@@ -75,6 +57,10 @@ Puppet::Type.newtype(:iis_application) do
     desc "The IIS Virtual Directory to convert to an application on create.
           Similar to iis_application, iis_virtual_directory uses composite
           namevars."
+
+    validate do | value |
+      raise ArgumentError, "Path must start with IIS:\\Site\\" unless value.start_with?('IIS:\\Sites\\')
+    end
   end
 
   newproperty(:sslflags, :array_matching => :all) do
@@ -120,8 +106,4 @@ Puppet::Type.newtype(:iis_application) do
 
   autorequire(:iis_application_pool) { self[:applicationpool] }
   autorequire(:iis_site) { self[:sitename] }
-
-  validate do
-    fail("sitename is a required parameter") if (provider && ! provider.sitename) or ! self[:sitename]
-  end
 end
