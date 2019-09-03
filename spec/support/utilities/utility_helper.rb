@@ -34,6 +34,7 @@ end
 
 def idempotent_apply(work_description, manifest)
   it "#{work_description} runs without errors" do
+    require 'pry'; binding.pry;
     execute_manifest(manifest, catch_failures: true)
   end
 
